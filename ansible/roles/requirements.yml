@@ -1,0 +1,18 @@
+---
+collections:
+  - name: community.general
+    type: galaxy
+    version: ">=9.3.0"
+  - name: community.aws
+    type: galaxy
+    version: ">=8.0.0"
+  - name: amazon.aws
+    type: galaxy
+    version: ">=8.1.0"
+  - name: ansible.windows
+    type: galaxy
+    version: ">=2.4.0"
+  - name: community.windows
+    type: galaxy
+    version: ">=2.2.0"
+    

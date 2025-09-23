@@ -1,0 +1,34 @@
+*.0_x5 linguist-language=0_x5 linguist-vendored=false
+*.1_x5 linguist-language=1_x5 linguist-vendored=false
+*.cfg linguist-language=Cfg linguist-vendored=false
+*.ds_store linguist-language=Ds_store linguist-vendored=false
+*.editorconfig linguist-language=Editorconfig linguist-vendored=false
+*.gitattributes linguist-language=Gitattributes linguist-vendored=false
+*.gitignore linguist-language=Gitignore linguist-vendored=false
+*.gitkeep linguist-language=Gitkeep linguist-vendored=false
+*.hcl linguist-language=Hcl linguist-vendored=false
+*.html linguist-language=Html linguist-vendored=false
+*.icns linguist-language=Icns linguist-vendored=false
+*.ico linguist-language=Ico linguist-vendored=false
+*.json linguist-language=Json linguist-vendored=false
+*.md linguist-language=Md linguist-vendored=false
+*.pkg linguist-language=Pkg linguist-vendored=false
+*.plist linguist-language=Plist linguist-vendored=false
+*.py linguist-language=Py linguist-vendored=false
+*.pyc linguist-language=Pyc linguist-vendored=false
+*.pyz linguist-language=Pyz linguist-vendored=false
+*.sh linguist-language=Sh linguist-vendored=false
+*.spec linguist-language=Spec linguist-vendored=false
+*.tf linguist-language=Terraform linguist-vendored=false
+*.tfstate linguist-language=Tfstate linguist-vendored=false
+*.toc linguist-language=Toc linguist-vendored=false
+*.tpl linguist-language=Tpl linguist-vendored=false
+*.txt linguist-language=Txt linguist-vendored=false
+*.ui linguist-language=Ui linguist-vendored=false
+*.yml linguist-language=YAML linguist-vendored=false
+*.zip linguist-language=Zip linguist-vendored=false
+customer-onboarding-terraform/terraform/safeguardpay/.terraform/providers/registry.terraform.io/hashicorp/aws/5.85.0/darwin_arm64/terraform-provider-aws_v5.85.0_x5 filter=lfs diff=lfs merge=lfs -text
+customer-onboarding-terraform/terraform/marex/.terraform/providers/registry.terraform.io/hashicorp/aws/5.85.0/darwin_arm64/terraform-provider-aws_v5.85.0_x5 filter=lfs diff=lfs merge=lfs -text
+customer-onboarding-terraform/dist/customer_onboarding_automation filter=lfs diff=lfs merge=lfs -text
+customer-onboarding-terraform/dist/customer_onboarding_automation.app/Contents/MacOS/customer_onboarding_automation filter=lfs diff=lfs merge=lfs -text
+customer-onboarding-terraform/build/customer_onboarding_automation/customer_onboarding_automation.pkg filter=lfs diff=lfs merge=lfs -text

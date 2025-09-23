@@ -1,0 +1,12 @@
+---
+roles:
+  - name: sap_hana_db
+    src: git@github.com:SapphireSystems/ansible-sap-b1-hana.git
+    version: main
+    scm: git
+    
+  - name: sap_hana_win
+    src: git@github.com:SapphireSystems/ansible-b1-windows-os-prep.git
+    version: main
+    scm: git
+    

@@ -1,0 +1,38 @@
+---
+- name: Setup and Configure SAP Hana DB
+  hosts: tag_sap_hana_db
+  become: true
+  vars:
+    ansible_connection: community.aws.aws_ssm
+    ansible_aws_ssm_retries: 10
+    ansible_aws_ssm_bucket_name: "{{ lookup('amazon.aws.ssm_parameter', '/ansible/ssm/bucket') }}"
+    ansible_aws_ssm_region: "{{ lookup('amazon.aws.ssm_parameter', '/ansible/ssm/region') }}"
+    
+  pre_tasks:
+    - name: Retrieve passwords from AWS Systems Manager Parameter Store
+      ansible.builtin.set_fact:
+        automation_accountid: "{{ lookup('amazon.aws.ssm_parameter', 'automation_accountid') }}"
+        domainuser_password: "{{ lookup('amazon.aws.ssm_parameter', 'domainuserpassword') }}"
+        hana_password: "{{ lookup('amazon.aws.ssm_parameter', '/sap/hana/adminpasswd') }}"
+        b1admin_password: "{{ lookup('amazon.aws.ssm_parameter', '/sap/hana/b1/adminpasswd') }}"
+        b1site_password: "{{ lookup('amazon.aws.ssm_parameter', '/sap/hana/b1/sitepasswd') }}"
+        hanab1_revision: "{{ lookup('amazon.aws.ssm_parameter', '/sap/hana/b1/revision') }}"
+        hanab1_patch: "{{ lookup('amazon.aws.ssm_parameter', '/sap/hana/b1/patch') }}"
+        hana_cockpit: "{{ lookup('amazon.aws.ssm_parameter', '/sap/hana/b1/cockpit') }}"
+        hana_demo_db: "{{ lookup('amazon.aws.ssm_parameter', '/sap/hana/b1/demo_db') }}"
+        crystal_reports_ver: "{{ lookup('amazon.aws.ssm_parameter', '/sap/hana/cr/ver') }}"
+
+    - name: Include variables
+      ansible.builtin.set_fact:
+        sld_windows_domain_action: "skip"
+        primary_dc_ip: ""
+        domain: ""
+        domainuser: "b1"
+        hostname: "{{ hostvars[inventory_hostname]['tags']['Name'] | default('Not Set') | lower }}"
+        customer_name: "{{ hostvars[inventory_hostname]['tags']['CustomerName'] | default('Not Set') }}"
+        customer_region: "{{ ansible_aws_ssm_region | default('Not Set') }}"
+        hana_private_ip: "{{ hostvars[inventory_hostname]['private_ip_address'] | default('Not Set') }}"
+        password_system_user: "{{ hana_password }}"
+
+  roles:
+    - role: sap_hana_db

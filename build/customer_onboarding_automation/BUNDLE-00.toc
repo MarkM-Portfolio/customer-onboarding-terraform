@@ -1,0 +1,3 @@
+([('customer_onboarding_automation',
+   '/Users/markmonmonteros/Projects/Sapphire_Systems/customer-onboarding-terraform/dist/customer_onboarding_automation',
+   'EXECUTABLE')],)

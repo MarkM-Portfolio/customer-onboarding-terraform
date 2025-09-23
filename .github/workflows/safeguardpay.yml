@@ -1,0 +1,944 @@
+### [688567271653] safeguardpay (eu-west-2) -- London
+
+name: '[688567271653] safeguardpay workflow'
+
+on:
+  push:
+    branches:
+    - "main"
+    paths:
+    - 'terraform/safeguardpay/**'
+  pull_request:
+    branches:    
+    - 'main'
+    paths:
+    - 'terraform/safeguardpay/**'
+  workflow_dispatch:
+
+env:
+  AWS_REGION: "eu-west-2"
+  AUTOMATION_ACCT: "231639157514"
+  SHARED_ACCT: "812224207958"
+  CUSTOMER_ACCT: "688567271653"
+  CUSTOMER_NAME: "safeguardpay"
+  CUSTOMER_ID: "DSFGP01"
+  RUNNER_USER: "ubuntu"
+  REPO_ORG: "SapphireSystems"
+  TF_DIRECTORY: "./terraform/safeguardpay"
+  SAP_HANA_REVISION: ""
+  SAP_HANA_PATCH: ""
+  SAP_HANA_COCKPIT: "false"
+  SAP_HANA_DEMO_DB: "false"
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  check-runners:
+    name: Calling Self-Hosted Runner Workflow
+    uses: SapphireSystems/self-hosted-runner/.github/workflows/self-hosted-runner.yml@main
+    with:
+      aws-region: "eu-west-2"
+      automation-acct: "231639157514"
+      shared-acct: "812224207958"
+      customer-acct: "688567271653"
+      customer-name: "safeguardpay"
+
+    secrets: inherit
+    
+  checkov:
+    name: CheckOV
+    needs: check-runners
+    runs-on: safeguardpay--688567271653--A
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.2.2
+
+    - name: Test with CheckOV
+      id: checkov
+      uses: bridgecrewio/checkov-action@master #v3.2.223
+      continue-on-error: true # force skip for now to fix: CKV_TF_3: to skip terraform backend s3 state lock
+      with:
+        directory: ./terraform
+        framework: terraform
+        skip_check: CKV_AWS_126,CKV_AWS_135,CKV_AWS_8,CKV_AWS_144,CKV_AWS_18,CKV_AWS_19,CKV_AWS_145,CKV_AWS_21,CKV2_AWS_34,CKV_TF_1  # Optional: skip a specific check_id. can be comma separated list # Added CKV2_AWS_34 to skip other branches, CKV_TF_1: to skip terraform module sources use a commit hash
+        # download_external_modules: true
+
+  # infracost:
+  #   name: Infracost
+  #   needs: check-runners
+  #   runs-on: safeguardpay--688567271653--B
+  #   timeout-minutes: 10
+  #   if: github.event_name == 'pull_request'
+
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v4.2.2
+
+  #   - name: Setup Terraform
+  #     uses: hashicorp/setup-terraform@v3.1.2
+  #     # with:
+  #     #   terraform_version: 1.10.03
+
+  #   - name: Create Backend S3
+  #     run: |
+  #       python create-backend-s3.py --arg1 "${{ env.AWS_REGION }}" --arg2 "${{ env.CUSTOMER_NAME }}" --arg3 "${{ env.CUSTOMER_ACCT }}"
+  #     working-directory: ${{ env.TF_DIRECTORY }}
+
+  #   - name: Terraform Init
+  #     run: terraform init
+
+  #   # Step 4: Generate Terraform plan JSON
+  #   - name: Generate Terraform Plan JSON
+  #     run: |
+  #       terraform plan -out=tfplan.binary
+  #       terraform show -json tfplan.binary > plan.json
+
+  #   # Step 5: Setup Infracost
+  #   - name: Setup Infracost
+  #     uses: infracost/actions/setup@v2
+
+  #   # Step 6: Run Infracost breakdown
+  #   - name: Run Infracost Breakdown
+  #     env:
+  #       INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
+  #     run: |
+  #       infracost breakdown --path=plan.json --format=json --out-file=/tmp/infracost.json
+
+  #   # Step 7: Post Infracost comment on PR
+  #   - name: Post Infracost Comment
+  #     env:
+  #       INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
+  #     run: |
+  #       infracost comment github --path=/tmp/infracost.json \
+  #         --repo=$GITHUB_REPOSITORY \
+  #         --github-token=${{ github.token }} \
+  #         --pull-request=${{ github.event.pull_request.number }} \
+
+  infracost:
+    name: Infracost
+    needs: check-runners
+    runs-on: safeguardpay--688567271653--B
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: Setup SSH Agent
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Setup Infracost
+      uses: infracost/actions/setup@v3.0.1
+      with:
+        api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+    # - name: Checkout Customer Workloads
+    #   uses: actions/checkout@v4.2.2
+    #   with:
+    #     repository: ${{ env.REPO_ORG }}/customer-workloads
+    #     path: ${{ env.REPO_ORG }}/customer-workloads
+    #     ref: main
+    #     ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    # - name: Generate customer-workloads Infracost estimates
+    #   env:
+    #     INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
+    #   run: |
+    #     infracost breakdown --path=${{ env.REPO_ORG }}/customer-workloads \
+    #     --format=json \
+    #     --out-file=/tmp/infracost-cw.json
+
+    # - name: Checkout
+    #   uses: actions/checkout@v4.2.2
+
+    # - name: Generate Infracost diff
+    #   env:
+    #     INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
+    #   run: |
+    #     infracost diff --path=${{ env.TF_DIRECTORY }} \
+    #     --format=json \
+    #     --compare-to=/tmp/infracost-cw.json \
+    #     --out-file=/tmp/infracost.json
+
+    # - name: Post Infracost comment
+    #   env:
+    #     INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
+    #   run: |
+    #     infracost comment github --path=/tmp/infracost.json \
+    #     --repo=$GITHUB_REPOSITORY \
+    #     --github-token=${{github.token}} \
+    #     --pull-request=${{github.event.pull_request.number}} \
+    #     --behavior=update
+
+    # ---------
+    # - name: Checkout base branch
+    #   uses: actions/checkout@v4.2.2
+    #   with:
+    #     ref: '${{ github.event.pull_request.base.ref }}'
+
+    # - name: Generate Infracost estimates baseline
+    #   env:
+    #     INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
+    #   run: |
+    #     infracost breakdown --path=${{ env.TF_ROOT }} \
+    #     --format=json \
+    #     --out-file=/tmp/infracost-base.json
+
+    # - name: Combine Infracost JSON results
+    #   run: |
+    #     combined_file="/tmp/infracost-cw.json"
+    #     echo "[" > $combined_file
+    #     for dir in "${dirs[@]}"; do
+    #       cat /tmp/infracost-$dir.json >> $combined_file
+    #       if [[ $dir != ${dirs[-1]} ]]; then
+    #         echo "," >> $combined_file
+    #       fi
+    #     done
+    #     echo "]" >> $combined_file
+
+    # - name: Checkout
+    #   uses: actions/checkout@v4.2.2
+
+    - name: Run Infracost Breakdown
+      env:
+        INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
+      run: |
+        infracost breakdown --path=${{ env.TF_DIRECTORY }} \
+        --format=json \
+        --out-file=/tmp/infracost.json
+
+    - name: Post Infracost comment
+      env:
+        INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
+      run: |
+        infracost comment github --path=/tmp/infracost.json \
+        --repo=$GITHUB_REPOSITORY \
+        --github-token=${{ github.token }} \
+        --pull-request=${{ github.event.pull_request.number }} \
+        --behavior=update
+
+  terraform_plan:
+    name: Terraform Plan
+    needs: [ checkov, infracost ]
+    runs-on: safeguardpay--688567271653--A
+    if: github.event_name == 'pull_request'
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.TF_DIRECTORY }}
+
+    steps:
+    - name: Setup SSH Agent
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Add GitHub to known_hosts
+      run: ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+    - name: Checkout
+      uses: actions/checkout@v4.2.2
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3.1.2
+      # with:
+      #   terraform_version: 1.10.03
+
+    - name: Setup Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.12.4
+        cache: 'pip'
+    
+    - name: Install Dependencies
+      run: |
+        pip install --upgrade pip
+        pip install boto3 botocore argparse
+
+    - name: AWS Assume Role (${{ env.CUSTOMER_ACCT }} role/github-oidc)
+      uses: aws-actions/configure-aws-credentials@v4.1.0
+      with:
+        role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
+        role-session-name: actionsrolesession
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Create Backend S3
+      run: |
+        python create-backend-s3.py --arg1 "${{ env.AWS_REGION }}" --arg2 "${{ env.CUSTOMER_NAME }}" --arg3 "${{ env.CUSTOMER_ACCT }}"
+      working-directory: ${{ env.TF_DIRECTORY }}
+
+    - name: Terraform Init
+      id: init
+      run: |
+        terraform init \
+        -backend-config="region=${{ env.AWS_REGION }}" \
+        -backend-config="bucket=tf-customer-onboarding--${{ env.CUSTOMER_NAME }}-${{ env.CUSTOMER_ACCT }}" \
+        -backend-config="key=${{ env.CUSTOMER_NAME }}-runner.tfstate" \
+        -backend-config="dynamodb_table=tf-state-lock--${{ env.CUSTOMER_NAME }}-${{ env.CUSTOMER_ACCT }}" \
+        -backend-config="encrypt=true" 
+      working-directory: ${{ env.TF_DIRECTORY }}
+
+    - name: Terraform Format
+      id: fmt
+      run: terraform fmt
+
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate
+
+    - name: TFLint
+      id: tflint
+      uses: reviewdog/action-tflint@v1.24.0
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        level: info
+        filter_mode: "nofilter"
+        working_directory: ${{ env.TF_DIRECTORY }} # Optional. Change working directory
+        reporter: github-pr-review # Optional. Change reporter
+        fail_level: error # Optional. Fail when on levels: error, warning, info
+
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -out=tfplan.out -input=false
+      continue-on-error: true # continue on error to exec terraform plan status
+      working-directory: ${{ env.TF_DIRECTORY }}
+
+    - name: Update Pull Request
+      uses: actions/github-script@v7.0.1
+      if: github.event_name == 'pull_request'
+
+      env:
+        PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+      with:
+        script: |
+          const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+          #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+          #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+          #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+
+          <details><summary> Show Plan</summary>
+
+          \`\`\`\n
+          ${process.env.PLAN}
+          \`\`\`
+
+          </details>
+
+          *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+          })
+
+    - name: Terraform Plan Status
+      if: steps.plan.outcome == 'failure'
+      run: exit 1
+
+  terraform_apply:
+    name: Terraform Apply
+    needs: check-runners
+    runs-on: safeguardpay--688567271653--A
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # remove when pipeline is stable
+    # needs: terraform_plan
+    # if: github.event_name == 'pull_request' # USE PR FOR TESTING
+
+    outputs: 
+      job-status: ${{ job.status }}
+      config_dc: true 
+      config_hana: false
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.TF_DIRECTORY }}
+
+    steps:
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3.1.2
+      # with:
+      #   terraform_version: 1.10.03
+
+    - name: Setup SSH Agent
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Checkout Merge Commit
+      uses: actions/checkout@v4.2.2
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Add GitHub to known_hosts
+      run: ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+    - name: Setup Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.12.4
+        cache: 'pip'
+    
+    - name: Install Dependencies
+      run: |
+        pip install --upgrade pip
+        pip install boto3 botocore argparse
+
+    - name: AWS Assume Role (${{ env.CUSTOMER_ACCT }} role/github-oidc)
+      uses: aws-actions/configure-aws-credentials@v4.1.0
+      with:
+        role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
+        role-session-name: actionsrolesession
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Terraform Init
+      id: init
+      run: |
+        terraform init \
+        -backend-config="region=${{ env.AWS_REGION }}" \
+        -backend-config="bucket=tf-customer-onboarding--${{ env.CUSTOMER_NAME }}-${{ env.CUSTOMER_ACCT }}" \
+        -backend-config="key=${{ env.CUSTOMER_NAME }}-runner.tfstate" \
+        -backend-config="dynamodb_table=tf-state-lock--${{ env.CUSTOMER_NAME }}-${{ env.CUSTOMER_ACCT }}" \
+        -backend-config="encrypt=true" 
+      working-directory: ${{ env.TF_DIRECTORY }}
+
+    - name: Terraform Apply
+      id: apply
+      continue-on-error: true # continue on error to exec terraform destroy
+      run: terraform apply -auto-approve -input=false
+
+  # configure_dcs:
+  #   name: Configure Domain Controllers
+  #   needs: terraform_apply
+  #   runs-on: safeguardpay--688567271653--A
+  #   timeout-minutes: 180
+  #   continue-on-error: true
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.terraform_apply.outputs.config_dc == 'true'
+  #   # remove when pipeline is stable # USE PR FOR TESTING
+  #   # if: github.event_name == 'pull_request' && needs.terraform_apply.outputs.config_dc == 'true'
+
+  #   outputs:
+  #     job-status: ${{ job.status }}
+
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #       working-directory: ./ansible
+
+  #   steps:
+  #   - name: Setup Terraform
+  #     uses: hashicorp/setup-terraform@v3.1.2
+
+  #   - name: Setup SSH Agent
+  #     uses: webfactory/ssh-agent@v0.9.0
+  #     with:
+  #       ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+  #   - name: Checkout Merge Commit
+  #     uses: actions/checkout@v4.2.2
+  #     with:
+  #       fetch-depth: 0
+  #       ref: ${{ github.event.pull_request.head.sha }}
+
+  #   - name: Add GitHub to known_hosts
+  #     run: ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+  #   - name: AWS Assume Role (${{ env.CUSTOMER_ACCT }} role/github-oidc)
+  #     uses: aws-actions/configure-aws-credentials@v4.1.0
+  #     with:
+  #       role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
+  #       role-session-name: actionsrolesession
+  #       role-duration-seconds: 10800 # 3 hours
+  #       aws-region: ${{ env.AWS_REGION }}
+
+  #   - name: Setup Python 3.12
+  #     uses: actions/setup-python@v5
+  #     with:
+  #       python-version: 3.12.4
+  #       cache: 'pip'
+
+  #   - name: Install Dependencies
+  #     run: |
+  #       pip install --upgrade pip
+  #       pip install boto3 botocore ansible
+
+  #   - name: Terraform Init
+  #     id: init
+  #     run: |
+  #       terraform init \
+  #       -backend-config="region=${{ env.AWS_REGION }}" \
+  #       -backend-config="bucket=tf-customer-onboarding--${{ env.CUSTOMER_NAME }}-${{ env.CUSTOMER_ACCT }}" \
+  #       -backend-config="key=${{ env.CUSTOMER_NAME }}-runner.tfstate" \
+  #       -backend-config="dynamodb_table=tf-state-lock--${{ env.CUSTOMER_NAME }}-${{ env.CUSTOMER_ACCT }}" \
+  #       -backend-config="encrypt=true" 
+  #     working-directory: ${{ env.TF_DIRECTORY }}
+
+  #   - name: Initializing Domain Controller Instances
+  #     run: |
+  #       PRIMARY_DC_ID=$(aws ec2 describe-instances --filters "Name=tag:ansible_group,Values=primary-dc" "Name=instance-state-name,Values=running" --query "Reservations[*].Instances[*].InstanceId" --region ${{ env.AWS_REGION }} --output text)
+  #       SECONDARY_DC_ID=$(aws ec2 describe-instances --filters "Name=tag:ansible_group,Values=secondary-dc" "Name=instance-state-name,Values=running" --query "Reservations[*].Instances[*].InstanceId" --region ${{ env.AWS_REGION }} --output text)
+
+  #       primary_dc() {
+  #         INSTANCE_NAME="Primary DC"
+  #         MAX_ATTEMPTS=40
+  #         SLEEP_INTERVAL=30
+  #         STATUS="Initializing"
+  #         ATTEMPTS=0
+
+  #         while [ "$STATUS" != "ok" ] && [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+  #           echo "> Waiting for $INSTANCE_NAME instance ($PRIMARY_DC_ID) to pass status checks..."
+  #           STATUS=$(aws ec2 describe-instance-status --instance-id $PRIMARY_DC_ID --query "InstanceStatuses[0].InstanceStatus.Status" --region ${{ env.AWS_REGION }} --output text)
+  #           if [ "$STATUS" == "null" ]; then
+  #             STATUS="Initializing"
+  #           fi
+  #           sleep $SLEEP_INTERVAL
+  #           ATTEMPTS=$((ATTEMPTS + 1))
+  #         done
+
+  #         if [ "$STATUS" != "ok" ]; then
+  #           echo "$INSTANCE_NAME instance ($PRIMARY_DC_ID) did not pass status checks in time"
+  #           exit 1
+  #         fi
+
+  #         echo "$INSTANCE_NAME instance ($PRIMARY_DC_ID) has PASSED status checks"
+  #       }
+
+  #       secondary_dc() {
+  #         INSTANCE_NAME="Secondary DC"
+  #         MAX_ATTEMPTS=40
+  #         SLEEP_INTERVAL=30
+  #         STATUS="Initializing"
+  #         ATTEMPTS=0
+
+  #         while [ "$STATUS" != "ok" ] && [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+  #           echo "> Waiting for $INSTANCE_NAME instance ($SECONDARY_DC_ID) to pass status checks..."
+  #           STATUS=$(aws ec2 describe-instance-status --instance-id $SECONDARY_DC_ID --query "InstanceStatuses[0].InstanceStatus.Status" --region ${{ env.AWS_REGION }} --output text)
+  #           if [ "$STATUS" == "null" ]; then
+  #             STATUS="Initializing"
+  #           fi
+  #           sleep $SLEEP_INTERVAL
+  #           ATTEMPTS=$((ATTEMPTS + 1))
+  #         done
+
+  #         if [ "$STATUS" != "ok" ]; then
+  #           echo "$INSTANCE_NAME instance ($SECONDARY_DC_ID) did not pass status checks in time"
+  #           exit 1
+  #         fi
+
+  #         echo "$INSTANCE_NAME instance ($SECONDARY_DC_ID) has PASSED status checks"
+  #       }
+
+  #       [ ! -z "$PRIMARY_DC_ID" ] && primary_dc &
+  #       [ ! -z "$SECONDARY_DC_ID" ] && secondary_dc &
+
+  #       wait
+
+  #       echo "All instances have PASSED status checks"
+
+  #   - name: Check SSM Agent
+  #     run : |
+  #       PRIMARY_DC_ID=$(aws ec2 describe-instances --filters "Name=tag:ansible_group,Values=primary-dc" "Name=instance-state-name,Values=running" --query "Reservations[*].Instances[*].InstanceId" --region ${{ env.AWS_REGION }} --output text)
+  #       SECONDARY_DC_ID=$(aws ec2 describe-instances --filters "Name=tag:ansible_group,Values=secondary-dc" "Name=instance-state-name,Values=running" --query "Reservations[*].Instances[*].InstanceId" --region ${{ env.AWS_REGION }} --output text)
+
+  #       primary_dc() {
+  #         INSTANCE_NAME="Primary DC"
+  #         MAX_ATTEMPTS=40
+  #         SLEEP_INTERVAL=30
+  #         STATUS="Initializing"
+  #         ATTEMPTS=0
+
+  #         while [ "$STATUS" != "ok" ] && [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+  #           echo "> Waiting for $INSTANCE_NAME instance ($PRIMARY_DC_ID) to pass SSM checks..."
+  #           STATUS=$(aws ssm describe-instance-information --filters Key=PlatformTypes,Values=Windows --query "InstanceInformationList[*].InstanceId" --region ${{ env.AWS_REGION }} | grep "$PRIMARY_DC_ID")
+  #           if [ "$STATUS" == "null" ]; then
+  #             STATUS="Initializing"
+  #           else
+  #             STATUS="ok"
+  #           fi
+  #           sleep $SLEEP_INTERVAL
+  #           ATTEMPTS=$((ATTEMPTS + 1))
+  #         done
+
+  #         if [ "$STATUS" != "ok" ]; then
+  #           echo "$INSTANCE_NAME instance ($PRIMARY_DC_ID) did not pass SSM checks in time"
+  #           exit 1
+  #         fi
+
+  #         echo "$INSTANCE_NAME instance ($PRIMARY_DC_ID) has PASSED SSM checks"
+  #       }
+
+  #       secondary_dc() {
+  #         INSTANCE_NAME="Secondary DC"
+  #         MAX_ATTEMPTS=40
+  #         SLEEP_INTERVAL=30
+  #         STATUS="Initializing"
+  #         ATTEMPTS=0
+
+  #         while [ "$STATUS" != "ok" ] && [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+  #           echo "> Waiting for $INSTANCE_NAME instance ($SECONDARY_DC_ID) to pass SSM checks..."
+  #           STATUS=$(aws ssm describe-instance-information --filters Key=PlatformTypes,Values=Windows --query "InstanceInformationList[*].InstanceId" --region ${{ env.AWS_REGION }} | grep "$SECONDARY_DC_ID")
+  #           if [ "$STATUS" == "null" ]; then
+  #             STATUS="Initializing"
+  #           else
+  #             STATUS="ok"
+  #           fi
+  #           sleep $SLEEP_INTERVAL
+  #           ATTEMPTS=$((ATTEMPTS + 1))
+  #         done
+
+  #         if [ "$STATUS" != "ok" ]; then
+  #           echo "$INSTANCE_NAME instance ($SECONDARY_DC_ID) did not pass SSM checks in time"
+  #           exit 1
+  #         fi
+
+  #         echo "$INSTANCE_NAME instance ($SECONDARY_DC_ID) has PASSED SSM checks"
+  #       }
+
+  #       [ ! -z "$PRIMARY_DC_ID" ] && primary_dc &
+  #       [ ! -z "$SECONDARY_DC_ID" ] && secondary_dc &
+
+  #       wait
+
+  #       echo "All instances have PASSED SSM checks"
+
+  #   - name: Install requirements
+  #     run: |
+  #       ansible-galaxy install -r ./roles/requirements.yml
+
+  #   - name: Install roles from private repositories
+  #     run: |
+  #       ansible-galaxy install -r ./roles/roles_dc.yml
+        
+  #   - name: Run Playbook
+  #     run: |
+  #       ansible-playbook -i ./inventory/aws_ec2.yml ./new_customer_build_dcs.yml -vvv
+        
+  configure_sap:
+    name: Configure SAP HANA
+    needs: terraform_apply
+    runs-on: safeguardpay--688567271653--B
+    timeout-minutes: 180
+    continue-on-error: true
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.terraform_apply.outputs.config_hana == 'true'
+    # remove when pipeline is stable # USE PR FOR TESTING
+    # if: github.event_name == 'pull_request' && needs.terraform_apply.outputs.config_hana == 'true'
+
+    outputs:
+      job-status: ${{ job.status }}
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./ansible
+
+    steps:
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3.1.2
+      # with:
+      #   terraform_version: 1.10.03
+
+    - name: Setup SSH Agent
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Checkout Merge Commit
+      uses: actions/checkout@v4.2.2
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Add GitHub to known_hosts
+      run: ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+    - name: Clean Ansible Contents # add this for ansible repo branch changes in roles to reflect
+      run: rm -rf /home/${{ env.RUNNER_USER }}/.ansible
+
+    - name: Setup Python 3.9
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.9
+        cache: 'pip'
+
+    - name: Install Dependencies
+      run: |
+        pip install --upgrade pip
+        pip install boto3 botocore argparse ansible molecule-ec2
+
+    - name: AWS Assume Role (${{ env.AUTOMATION_ACCT }} role/github-oidc)
+      uses: aws-actions/configure-aws-credentials@v4.1.0
+      with:
+        role-to-assume: "arn:aws:iam::${{ env.AUTOMATION_ACCT }}:role/github-oidc"
+        role-session-name: actionsrolesession
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Allow SAP Hana Bucket
+      run: |
+        python s3-bucket-access.py --arg1 "${{ env.CUSTOMER_ACCT }}" --arg2 "${{ env.AUTOMATION_ACCT }}" --arg3 "${{ env.AWS_REGION }}" --arg4 insert
+      working-directory: ${{ env.TF_DIRECTORY }}
+
+    - name: AWS Assume Role (${{ env.CUSTOMER_ACCT }} role/github-oidc)
+      uses: aws-actions/configure-aws-credentials@v4.1.0
+      with:
+        role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
+        role-session-name: actionsrolesession
+        role-duration-seconds: 10800 # 3 hours
+        aws-region: ${{ env.AWS_REGION }}
+        
+    - name: Terraform Init
+      id: init
+      run: |
+        terraform init \
+        -backend-config="region=${{ env.AWS_REGION }}" \
+        -backend-config="bucket=tf-customer-onboarding--${{ env.CUSTOMER_NAME }}-${{ env.CUSTOMER_ACCT }}" \
+        -backend-config="key=${{ env.CUSTOMER_NAME }}-runner.tfstate" \
+        -backend-config="dynamodb_table=tf-state-lock--${{ env.CUSTOMER_NAME }}-${{ env.CUSTOMER_ACCT }}" \
+        -backend-config="encrypt=true" 
+      working-directory: ${{ env.TF_DIRECTORY }}
+
+    - name: Create SSM Parameters
+      id: put-ssm
+      run: |
+        aws ssm put-parameter --name ${{ secrets.DOMAINUSER_SECRET_NAME }} --value "${{ secrets.DOMAINUSER_SECRET }}" --type "SecureString" --overwrite --region ${{ env.AWS_REGION }}
+        aws ssm put-parameter --name ${{ secrets.HANA_SECRET_NAME }} --value "${{ secrets.HANA_SECRET }}" --type "SecureString" --overwrite --region ${{ env.AWS_REGION }}
+        aws ssm put-parameter --name ${{ secrets.B1ADMIN_SECRET_NAME }} --value "${{ secrets.B1ADMIN_SECRET }}" --type "SecureString" --overwrite --region ${{ env.AWS_REGION }}
+        aws ssm put-parameter --name ${{ secrets.B1SITE_SECRET_NAME }} --value "${{ secrets.B1SITE_SECRET }}" --type "SecureString" --overwrite --region ${{ env.AWS_REGION }}
+        aws ssm put-parameter --name "/sap/hana/b1/revision" --value ${{ env.SAP_HANA_REVISION }} --type "String" --overwrite --region ${{ env.AWS_REGION }}
+        aws ssm put-parameter --name "/sap/hana/b1/patch" --value ${{ env.SAP_HANA_PATCH }} --type "String" --overwrite --region ${{ env.AWS_REGION }}
+        aws ssm put-parameter --name "/sap/hana/b1/cockpit" --value ${{ env.SAP_HANA_COCKPIT }} --type "String" --overwrite --region ${{ env.AWS_REGION }}
+        aws ssm put-parameter --name "/sap/hana/b1/demo_db" --value ${{ env.SAP_HANA_DEMO_DB }} --type "String" --overwrite --region ${{ env.AWS_REGION }}
+
+    - name: Install requirements
+      run: |
+        ansible-galaxy install -r ./roles/requirements.yml
+
+    - name: List Collections
+      run: |
+        ansible-galaxy collection list
+
+    - name: Install roles from private repositories
+      run: |
+        ansible-galaxy install -r ./roles/roles_sap.yml
+
+    - name: Initializing SAP HANA DB Instance
+      run: |
+        SAP_HANA_DB_ID=$(aws ec2 describe-instances --filters "Name=tag:ansible_group,Values=sap_hana_db" "Name=instance-state-name,Values=running" --query "Reservations[*].Instances[*].InstanceId" --region ${{ env.AWS_REGION }} --output text)
+
+        sap_hana_db() {
+          INSTANCE_NAME="SAP Hana DB"
+          MAX_ATTEMPTS=40
+          SLEEP_INTERVAL=30
+          STATUS="Initializing"
+          ATTEMPTS=0
+
+          while [ "$STATUS" != "ok" ] && [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+            echo "> Waiting for $INSTANCE_NAME instance ($SAP_HANA_DB_ID) to pass status checks..."
+            STATUS=$(aws ec2 describe-instance-status --instance-id $SAP_HANA_DB_ID --query "InstanceStatuses[0].InstanceStatus.Status" --region ${{ env.AWS_REGION }} --output text)
+            if [ "$STATUS" == "null" ]; then
+              STATUS="Initializing"
+            fi
+            sleep $SLEEP_INTERVAL
+            ATTEMPTS=$((ATTEMPTS + 1))
+          done
+
+          if [ "$STATUS" != "ok" ]; then
+            echo "$INSTANCE_NAME instance ($SAP_HANA_DB_ID) did not pass status checks in time"
+            exit 1
+          fi
+
+          echo "$INSTANCE_NAME instance ($SAP_HANA_DB_ID) has PASSED status checks"
+        }
+
+        [ ! -z "$SAP_HANA_DB_ID" ] && sap_hana_db &
+
+        wait
+
+        echo "SAP HANA DB instance have PASSED status checks"
+
+    - name: Run Playbook (SAP HANA DB)
+      run: |
+        ansible-playbook -i ./inventory/aws_ec2.yml ./new_customer_build_saphanadb.yml -vvv
+
+    - name: Initializing SAP HANA Management Instance
+      run: |
+        SAP_HANA_WIN_ID=$(aws ec2 describe-instances --filters "Name=tag:ansible_group,Values=sap_hana_win" "Name=instance-state-name,Values=running" --query "Reservations[*].Instances[*].InstanceId" --region ${{ env.AWS_REGION }} --output text)
+
+        sap_hana_win() {
+          INSTANCE_NAME="SAP Hana Windows"
+          MAX_ATTEMPTS=40
+          SLEEP_INTERVAL=30
+          STATUS="Initializing"
+          ATTEMPTS=0
+
+          while [ "$STATUS" != "ok" ] && [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+            echo "> Waiting for $INSTANCE_NAME instance ($SAP_HANA_WIN_ID) to pass status checks..."
+            STATUS=$(aws ec2 describe-instance-status --instance-id $SAP_HANA_WIN_ID --query "InstanceStatuses[0].InstanceStatus.Status" --region ${{ env.AWS_REGION }} --output text)
+            if [ "$STATUS" == "null" ]; then
+              STATUS="Initializing"
+            fi
+            sleep $SLEEP_INTERVAL
+            ATTEMPTS=$((ATTEMPTS + 1))
+          done
+
+          if [ "$STATUS" != "ok" ]; then
+            echo "$INSTANCE_NAME instance ($SAP_HANA_WIN_ID) did not pass status checks in time"
+            exit 1
+          fi
+
+          echo "$INSTANCE_NAME instance ($SAP_HANA_WIN_ID) has PASSED status checks"
+        }
+
+        [ ! -z "$SAP_HANA_WIN_ID" ] && sap_hana_win &
+
+        wait
+
+        echo "HANA Management instance have PASSED status checks"
+
+    - name: Run Playbook (HANA Management)
+      run: |
+        ansible-playbook -i ./inventory/aws_ec2.yml ./new_customer_build_hanamgmt.yml -vvv
+
+  # terraform_destroy:
+  #   name: Terraform Destroy
+  #   needs: terraform_apply
+  #   runs-on: safeguardpay--688567271653--A
+  #   timeout-minutes: 120
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push' && (needs.terraform_apply.outputs.job-status == 'failure')
+  #   # if: ${{ (github.ref == 'refs/heads/main' && github.event_name == 'push') && ((needs.configure_dcs.outputs.job-status == 'failure') || (needs.configure_sap.outputs.job-status == 'failure')) }}
+  #   # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #   # remove when pipeline is stable # USE PR FOR TESTING
+  #   # if: ${{ (github.event_name == 'pull_request') && (needs.terraform_apply.outputs.job-status == 'failure') }}
+  #   # if: ${{ (github.event_name == 'pull_request') && ((needs.configure_dcs.outputs.job-status == 'failure') || (needs.configure_sap.outputs.job-status  == 'failure')) }}
+  #   # if: github.event_name == 'pull_request' # USE PR FOR TESTING BYPASS DC & SAP JOB STATUS
+    
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #       working-directory: ${{ env.TF_DIRECTORY }}
+
+  #   steps:
+  #   - name: Load SSH Private Key
+  #     uses: webfactory/ssh-agent@v0.9.0
+  #     with:
+  #       ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+  #   - name: Checkout
+  #     uses: actions/checkout@v4.2.2
+
+  #   - name: Show previous jobs status
+  #     continue-on-error: true
+  #     run: |
+  #       echo 'terraform apply status - ${{ needs.terraform_apply.outputs.job-status }}'
+  #       echo 'configure_dcs status - ${{ needs.configure_dcs.outputs.job-status }}'
+  #       echo 'configure_sap status - ${{ needs.configure_sap.outputs.job-status }}'
+
+  #   - name: AWS Assume Role (${{ env.CUSTOMER_ACCT }} role/github-oidc)
+  #     uses: aws-actions/configure-aws-credentials@v4.1.0
+  #     with:
+  #       role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
+  #       role-session-name: actionsrolesession
+  #       aws-region: ${{ env.AWS_REGION }}
+
+  #   # FIX ADD CONDITION FOR config_hana
+  #   # - name: Delete SSM Parameter
+  #   #   id: delete-ssm
+  #   #   run: |
+  #   #     aws ssm delete-parameter --name ${{ secrets.DOMAINUSER_SECRET_NAME }} --region ${{ env.AWS_REGION }}
+  #   #     aws ssm delete-parameter --name ${{ secrets.HANA_SECRET_NAME }} --region ${{ env.AWS_REGION }}
+  #   #     aws ssm delete-parameter --name ${{ secrets.B1ADMIN_SECRET_NAME }} --region ${{ env.AWS_REGION }}
+  #   #     aws ssm delete-parameter --name ${{ secrets.B1SITE_SECRET_NAME }} --region ${{ env.AWS_REGION }}
+  #   #     aws ssm delete-parameter --name "/sap/hana/b1/revision" --value ${{ env.SAP_HANA_REVISION }} --type "String" --overwrite --region ${{ env.AWS_REGION }}
+  #   #     aws ssm delete-parameter --name "/sap/hana/b1/patch" --value ${{ env.SAP_HANA_PATCH }} --type "String" --overwrite --region ${{ env.AWS_REGION }}
+  #   #     aws ssm delete-parameter --name "/sap/hana/b1/cockpit" --value ${{ env.SAP_HANA_COCKPIT }} --type "String" --overwrite --region ${{ env.AWS_REGION }}
+  #   #     aws ssm delete-parameter --name "/sap/hana/b1/demo_db" --value ${{ env.SAP_HANA_DEMO_DB }} --type "String" --overwrite --region ${{ env.AWS_REGION }}
+    
+  #   - name: Terraform Init
+  #     id: init
+  #     run: |
+  #       terraform init \
+  #       -backend-config="region=${{ env.AWS_REGION }}" \
+  #       -backend-config="bucket=tf-customer-onboarding--${{ env.CUSTOMER_NAME }}-${{ env.CUSTOMER_ACCT }}" \
+  #       -backend-config="key=${{ env.CUSTOMER_NAME }}-runner.tfstate" \
+  #       -backend-config="dynamodb_table=tf-state-lock--${{ env.CUSTOMER_NAME }}-${{ env.CUSTOMER_ACCT }}" \
+  #       -backend-config="encrypt=true" 
+  #     working-directory: ${{ env.TF_DIRECTORY }}
+
+  #   - name: Terraform Destroy
+  #     id: destroy
+  #     run: terraform destroy -auto-approve -input=false
+
+  # housekeeping:
+  #   name: Housekeeping
+  #   needs: terraform_destroy
+  #   runs-on: safeguardpay--688567271653--B
+    
+  #   steps:
+  #   - name: Load SSH Private Key
+  #     uses: webfactory/ssh-agent@v0.9.0
+  #     with:
+  #       ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+  #   - name: Setup Python 3.12
+  #     uses: actions/setup-python@v5
+  #     with:
+  #       python-version: 3.12.4
+  #       cache: 'pip'
+    
+  #   - name: Install Dependencies
+  #     run: |
+  #       pip install --upgrade pip
+  #       pip install boto3 botocore argparse
+
+  #   - name: Checkout
+  #     uses: actions/checkout@v4.2.2
+
+  #   - name: AWS Assume Role (${{ env.AUTOMATION_ACCT }} role/github-oidc)
+  #     uses: aws-actions/configure-aws-credentials@v4.1.0
+  #     with:
+  #       role-to-assume: "arn:aws:iam::${{ env.AUTOMATION_ACCT }}:role/github-oidc"
+  #       role-session-name: actionsrolesession
+  #       aws-region: ${{ env.AWS_REGION }}
+
+  #   - name: Removing SAP Hana Bucket
+  #     run: |
+  #       python s3-bucket-access.py --arg1 "${{ env.CUSTOMER_ACCT }}" --arg2 "${{ env.AUTOMATION_ACCT }}" --arg3 "${{ env.AWS_REGION }}" --arg4 remove
+  #     working-directory: ${{ env.TF_DIRECTORY }}
+    
+  # destroy-runners-on-success:
+  #   name: Terminate Self-Hosted Runners (Build Success)
+  #   needs: terraform_apply
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push' && (needs.terraform_apply.outputs.job-status != 'failure')
+    
+  #   uses: SapphireSystems/self-hosted-runner/.github/workflows/self-hosted-runner_destroy.yml@main
+  #   with:
+  #     aws-region: "eu-west-2"
+  #     automation-acct: "231639157514"
+  #     shared-acct: "812224207958"
+  #     customer-acct: "688567271653"
+  #     customer-name: "safeguardpay"
+  #   secrets: inherit
+
+  # destroy-runners-on-failed:
+  #   name: Terminate Self-Hosted Runners (Build Failed)
+  #   needs: terraform_destroy
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+  #   uses: SapphireSystems/self-hosted-runner/.github/workflows/self-hosted-runner_destroy.yml@main
+  #   with:
+  #     aws-region: "eu-west-2"
+  #     automation-acct: "231639157514"
+  #     shared-acct: "812224207958"
+  #     customer-acct: "688567271653"
+  #     customer-name: "safeguardpay"
+  #   secrets: inherit
+  

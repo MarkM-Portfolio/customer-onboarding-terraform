@@ -1,0 +1,12 @@
+---
+roles:
+  - name: primary_dc
+    src: git@github.com:SapphireSystems/ansible-primary-domain-controller.git
+    version: main
+    scm: git
+    
+  - name: secondary_dc
+    src: git@github.com:SapphireSystems/ansible-secondary-domain-controller.git
+    version: main
+    scm: git
+    

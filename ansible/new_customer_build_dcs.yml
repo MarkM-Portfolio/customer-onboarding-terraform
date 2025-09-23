@@ -1,0 +1,60 @@
+---
+- name: Setup and Configure Primary DC
+  hosts: tag_primary_dc
+  vars:
+    ansible_connection: community.aws.aws_ssm
+    ansible_shell_type: powershell
+    ansible_aws_ssm_retries: 10
+    ansible_aws_ssm_bucket_name: "{{ lookup('amazon.aws.ssm_parameter', '/ansible/ssm/bucket') }}"
+    ansible_aws_ssm_region: "{{ lookup('amazon.aws.ssm_parameter', '/ansible/ssm/region') }}"
+    ansible_aws_ssm_bucket_sse_mode: "{{ lookup('amazon.aws.ssm_parameter', '/ansible/ssm/bucket/sse') }}"
+    
+  pre_tasks:
+    - name: Retrieve passwords from AWS Systems Manager Parameter Store
+      ansible.builtin.set_fact:
+        # admin_password: "{{ lookup('amazon.aws.ssm_parameter', 'adminpassword') }}"
+        # domain_user_password: "{{ lookup('amazon.aws.ssm_parameter', 'domainuserpassword') }}"
+        admin_password: "Passw0rd123"
+        domain_user_password: "Passw0rd123"
+
+    - name: Include variables
+      ansible.builtin.set_fact:
+        hostname: "{{ hostvars[inventory_hostname]['tags']['Name'] }}"
+        customer_name: "{{ hostvars[inventory_hostname]['tags']['CustomerName'] | default('Not Set') }}"
+        customer_region: "{{ ansible_aws_ssm_region | default('Not Set') }}"
+        dc_private_ip: "{{ hostvars[inventory_hostname]['private_ip_address'] | default('Not Set') }}"
+        new_domain: "{{ hostvars[inventory_hostname]['tags']['CustomerName'] }}.local"
+        adminpassword: "{{ admin_password }}"
+        domainuserpassword: "{{ domain_user_password }}"
+
+  roles:
+    - role: primary_dc
+
+- name: Setup and Configure Secondary DC
+  hosts: tag_secondary_dc
+  vars:
+    ansible_connection: community.aws.aws_ssm
+    ansible_shell_type: powershell
+    ansible_aws_ssm_retries: 10
+    ansible_aws_ssm_bucket_name: "{{ lookup('amazon.aws.ssm_parameter', '/ansible/ssm/bucket') }}"
+    ansible_aws_ssm_region: "{{ lookup('amazon.aws.ssm_parameter', '/ansible/ssm/region') }}"
+    ansible_aws_ssm_bucket_sse_mode: "{{ lookup('amazon.aws.ssm_parameter', '/ansible/ssm/bucket/sse') }}"
+
+  pre_tasks:
+    - name: Retrieve passwords from AWS Systems Manager Parameter Store
+      ansible.builtin.set_fact:
+        # admin_password: "{{ lookup('amazon.aws.ssm_parameter', 'adminpassword') }}"
+        admin_password: "Passw0rd123"
+
+    - name: Include variables
+      ansible.builtin.set_fact:
+        hostname: "{{ hostvars[inventory_hostname]['tags']['Name'] }}"
+        customer_name: "{{ hostvars[inventory_hostname]['tags']['CustomerName'] | default('Not Set') }}"
+        customer_region: "{{ ansible_aws_ssm_region | default('Not Set') }}"
+        dc_private_ip: "{{ hostvars[inventory_hostname]['private_ip_address'] | default('Not Set') }}"
+        new_domain: "{{ hostvars[inventory_hostname]['tags']['CustomerName'] }}.local"
+        target_ou: "OU=Computers,DC={{ hostvars[inventory_hostname]['tags']['CustomerName'] }},DC=local"
+        adminpassword: "{{ admin_password }}"
+
+  roles:
+    - role: secondary_dc

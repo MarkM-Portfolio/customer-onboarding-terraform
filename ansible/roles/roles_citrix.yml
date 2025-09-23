@@ -1,0 +1,7 @@
+---
+roles:
+  - name: citrix_win
+    src: git@github.com:SapphireSystems/ansible-citrix.git
+    version: main
+    scm: git
+    
