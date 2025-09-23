@@ -1,0 +1,38 @@
+**/requirements.yml linguist-language=Ansible linguist-vendored=false
+**/roles_citrix.yml linguist-language=Ansible linguist-vendored=false
+**/roles_dc.yml linguist-language=Ansible linguist-vendored=false
+**/roles_sap.yml linguist-language=Ansible linguist-vendored=false
+*.0_x5 linguist-language=0_x5 linguist-vendored=false
+*.1_x5 linguist-language=1_x5 linguist-vendored=false
+*.cfg linguist-language=Config File linguist-vendored=false
+*.ds_store linguist-language=Ds_store linguist-vendored=false
+*.editorconfig linguist-language=Editorconfig linguist-vendored=false
+*.gitattributes linguist-language=Git linguist-vendored=false
+*.gitignore linguist-language=Git linguist-vendored=false
+*.gitkeep linguist-language=Gitkeep linguist-vendored=false
+*.hcl linguist-language=Hcl linguist-vendored=false
+*.html linguist-language=HTML linguist-vendored=false
+*.icns linguist-language=Icns linguist-vendored=false
+*.ico linguist-language=Ico linguist-vendored=false
+*.json linguist-language=JSON linguist-vendored=false
+*.md linguist-language=Markdown linguist-vendored=false
+*.pkg linguist-language=Pkg linguist-vendored=false
+*.plist linguist-language=Plist linguist-vendored=false
+*.py linguist-language=Python linguist-vendored=false
+*.pyc linguist-language=Pyc linguist-vendored=false
+*.pyz linguist-language=Pyz linguist-vendored=false
+*.sh linguist-language=Bash linguist-vendored=false
+*.spec linguist-language=Spec linguist-vendored=false
+*.tf linguist-language=Terraform linguist-vendored=false
+*.tfstate linguist-language=Terraform State File linguist-vendored=false
+*.toc linguist-language=Toc linguist-vendored=false
+*.tpl linguist-language=Template File linguist-vendored=false
+*.txt linguist-language=Text File linguist-vendored=false
+*.ui linguist-language=Ui linguist-vendored=false
+*.yml linguist-language=YAML linguist-vendored=false
+*.zip linguist-language=Zip linguist-vendored=false
+customer-onboarding-terraform/terraform/safeguardpay/.terraform/providers/registry.terraform.io/hashicorp/aws/5.85.0/darwin_arm64/terraform-provider-aws_v5.85.0_x5 filter=lfs diff=lfs merge=lfs -text
+customer-onboarding-terraform/terraform/marex/.terraform/providers/registry.terraform.io/hashicorp/aws/5.85.0/darwin_arm64/terraform-provider-aws_v5.85.0_x5 filter=lfs diff=lfs merge=lfs -text
+customer-onboarding-terraform/dist/customer_onboarding_automation filter=lfs diff=lfs merge=lfs -text
+customer-onboarding-terraform/dist/customer_onboarding_automation.app/Contents/MacOS/customer_onboarding_automation filter=lfs diff=lfs merge=lfs -text
+customer-onboarding-terraform/build/customer_onboarding_automation/customer_onboarding_automation.pkg filter=lfs diff=lfs merge=lfs -text
