@@ -252,7 +252,7 @@ jobs:
       #   terraform_version: 1.10.03
 
     - name: Setup Python 3.12
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.12.4
         cache: 'pip'
@@ -384,7 +384,7 @@ jobs:
       run: ssh-keyscan github.com >> ~/.ssh/known_hosts
 
     - name: Setup Python 3.12
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.12.4
         cache: 'pip'
@@ -462,7 +462,7 @@ jobs:
   #       aws-region: ${{ env.AWS_REGION }}
 
   #   - name: Setup Python 3.12
-  #     uses: actions/setup-python@v5
+  #     uses: actions/setup-python@v6
   #     with:
   #       python-version: 3.12.4
   #       cache: 'pip'
@@ -665,7 +665,7 @@ jobs:
       run: rm -rf /home/${{ env.RUNNER_USER }}/.ansible
 
     - name: Setup Python 3.9
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.9
         cache: 'pip'
@@ -889,7 +889,7 @@ jobs:
   #       ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
   #   - name: Setup Python 3.12
-  #     uses: actions/setup-python@v5
+  #     uses: actions/setup-python@v6
   #     with:
   #       python-version: 3.12.4
   #       cache: 'pip'
