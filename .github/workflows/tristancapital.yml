@@ -57,7 +57,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v5.0.1
 
     - name: Test with CheckOV
       id: checkov
@@ -78,7 +78,7 @@ jobs:
 
   #   steps:
   #   - name: Checkout
-  #     uses: actions/checkout@v4.2.2
+  #     uses: actions/checkout@v5.0.1
 
   #   - name: Setup Terraform
   #     uses: hashicorp/setup-terraform@v3.1.2
@@ -139,7 +139,7 @@ jobs:
         api-key: ${{ secrets.INFRACOST_API_KEY }}
 
     # - name: Checkout Customer Workloads
-    #   uses: actions/checkout@v4.2.2
+    #   uses: actions/checkout@v5.0.1
     #   with:
     #     repository: ${{ env.REPO_ORG }}/customer-workloads
     #     path: ${{ env.REPO_ORG }}/customer-workloads
@@ -155,7 +155,7 @@ jobs:
     #     --out-file=/tmp/infracost-cw.json
 
     # - name: Checkout
-    #   uses: actions/checkout@v4.2.2
+    #   uses: actions/checkout@v5.0.1
 
     # - name: Generate Infracost diff
     #   env:
@@ -178,7 +178,7 @@ jobs:
 
     # ---------
     # - name: Checkout base branch
-    #   uses: actions/checkout@v4.2.2
+    #   uses: actions/checkout@v5.0.1
     #   with:
     #     ref: '${{ github.event.pull_request.base.ref }}'
 
@@ -203,7 +203,7 @@ jobs:
     #     echo "]" >> $combined_file
 
     # - name: Checkout
-    #   uses: actions/checkout@v4.2.2
+    #   uses: actions/checkout@v5.0.1
 
     - name: Run Infracost Breakdown
       env:
@@ -244,7 +244,7 @@ jobs:
       run: ssh-keyscan github.com >> ~/.ssh/known_hosts
 
     - name: Checkout
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v5.0.1
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3.1.2
@@ -375,7 +375,7 @@ jobs:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Checkout Merge Commit
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v5.0.1
       with:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
@@ -445,7 +445,7 @@ jobs:
   #       ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
   #   - name: Checkout Merge Commit
-  #     uses: actions/checkout@v4.2.2
+  #     uses: actions/checkout@v5.0.1
   #     with:
   #       fetch-depth: 0
   #       ref: ${{ github.event.pull_request.head.sha }}
@@ -653,7 +653,7 @@ jobs:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Checkout Merge Commit
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v5.0.1
       with:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
@@ -833,7 +833,7 @@ jobs:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Checkout
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v5.0.1
 
     - name: Show previous jobs status
       continue-on-error: true
@@ -900,7 +900,7 @@ jobs:
   #       pip install boto3 botocore argparse
 
   #   - name: Checkout
-  #     uses: actions/checkout@v4.2.2
+  #     uses: actions/checkout@v5.0.1
 
   #   - name: AWS Assume Role (${{ env.AUTOMATION_ACCT }} role/github-oidc)
   #     uses: aws-actions/configure-aws-credentials@v4.1.0
