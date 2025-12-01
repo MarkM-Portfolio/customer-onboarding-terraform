@@ -199,7 +199,7 @@ jobs:
         pip install boto3 botocore argparse
 
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4.1.0
+      uses: aws-actions/configure-aws-credentials@v5.1.1
       with:
         role-to-assume: "arn:aws:iam::${{ env.AUTOMATION_ACCT }}:role/github-oidc"
         role-session-name: actionsrolesession
@@ -211,7 +211,7 @@ jobs:
       working-directory: ${{ env.TF_DIRECTORY }}
 
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4.1.0
+      uses: aws-actions/configure-aws-credentials@v5.1.1
       with:
         role-to-assume: "arn:aws:iam::${{ env.SHARED_ACCT }}:role/github-oidc"
         role-session-name: actionsrolesession
@@ -223,7 +223,7 @@ jobs:
       working-directory: ${{ env.TF_DIRECTORY }}
 
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4.1.0
+      uses: aws-actions/configure-aws-credentials@v5.1.1
       with:
         role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
         role-session-name: actionsrolesession
@@ -353,7 +353,7 @@ jobs:
           pip install boto3 botocore argparse
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4.1.0
+        uses: aws-actions/configure-aws-credentials@v5.1.1
         with:
           role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
           role-session-name: actionsrolesession
@@ -417,7 +417,7 @@ jobs:
   #     run: ssh-keyscan github.com >> ~/.ssh/known_hosts
 
   #   - name: Configure AWS Credentials
-  #     uses: aws-actions/configure-aws-credentials@v4.1.0
+  #     uses: aws-actions/configure-aws-credentials@v5.1.1
   #     with:
   #       role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
   #       role-session-name: actionsrolesession
@@ -637,7 +637,7 @@ jobs:
         pip install boto3 botocore argparse ansible molecule-ec2
 
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4.1.0
+      uses: aws-actions/configure-aws-credentials@v5.1.1
       with:
         role-to-assume: "arn:aws:iam::${{ env.AUTOMATION_ACCT }}:role/github-oidc"
         role-session-name: actionsrolesession
@@ -649,7 +649,7 @@ jobs:
       working-directory: ${{ env.TF_DIRECTORY }}
 
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4.1.0
+      uses: aws-actions/configure-aws-credentials@v5.1.1
       with:
         role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
         role-session-name: actionsrolesession
@@ -804,7 +804,7 @@ jobs:
   #       echo 'configure_sap status - ${{ needs.configure_sap.outputs.job-status }}'
 
   #   - name: Configure AWS Credentials
-  #     uses: aws-actions/configure-aws-credentials@v4.1.0
+  #     uses: aws-actions/configure-aws-credentials@v5.1.1
   #     with:
   #       role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
   #       role-session-name: actionsrolesession
@@ -864,7 +864,7 @@ jobs:
   #     uses: actions/checkout@v4.2.2
 
   #   - name: Configure AWS Credentials
-  #     uses: aws-actions/configure-aws-credentials@v4.1.0
+  #     uses: aws-actions/configure-aws-credentials@v5.1.1
   #     with:
   #       role-to-assume: "arn:aws:iam::${{ env.AUTOMATION_ACCT }}:role/github-oidc"
   #       role-session-name: actionsrolesession
@@ -881,7 +881,7 @@ jobs:
   #     working-directory: ${{ env.TF_DIRECTORY }}
 
   #   - name: Configure AWS Credentials
-  #     uses: aws-actions/configure-aws-credentials@v4.1.0
+  #     uses: aws-actions/configure-aws-credentials@v5.1.1
   #     with:
   #       role-to-assume: "arn:aws:iam::${{ env.SHARED_ACCT }}:role/github-oidc"
   #       role-session-name: actionsrolesession

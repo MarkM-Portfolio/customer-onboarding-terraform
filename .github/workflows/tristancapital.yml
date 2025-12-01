@@ -263,7 +263,7 @@ jobs:
         pip install boto3 botocore argparse
 
     - name: AWS Assume Role (${{ env.CUSTOMER_ACCT }} role/github-oidc)
-      uses: aws-actions/configure-aws-credentials@v4.1.0
+      uses: aws-actions/configure-aws-credentials@v5.1.1
       with:
         role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
         role-session-name: actionsrolesession
@@ -395,7 +395,7 @@ jobs:
         pip install boto3 botocore argparse
 
     - name: AWS Assume Role (${{ env.CUSTOMER_ACCT }} role/github-oidc)
-      uses: aws-actions/configure-aws-credentials@v4.1.0
+      uses: aws-actions/configure-aws-credentials@v5.1.1
       with:
         role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
         role-session-name: actionsrolesession
@@ -454,7 +454,7 @@ jobs:
   #     run: ssh-keyscan github.com >> ~/.ssh/known_hosts
 
   #   - name: AWS Assume Role (${{ env.CUSTOMER_ACCT }} role/github-oidc)
-  #     uses: aws-actions/configure-aws-credentials@v4.1.0
+  #     uses: aws-actions/configure-aws-credentials@v5.1.1
   #     with:
   #       role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
   #       role-session-name: actionsrolesession
@@ -676,7 +676,7 @@ jobs:
         pip install boto3 botocore argparse ansible molecule-ec2
 
     - name: AWS Assume Role (${{ env.AUTOMATION_ACCT }} role/github-oidc)
-      uses: aws-actions/configure-aws-credentials@v4.1.0
+      uses: aws-actions/configure-aws-credentials@v5.1.1
       with:
         role-to-assume: "arn:aws:iam::${{ env.AUTOMATION_ACCT }}:role/github-oidc"
         role-session-name: actionsrolesession
@@ -688,7 +688,7 @@ jobs:
       working-directory: ${{ env.TF_DIRECTORY }}
 
     - name: AWS Assume Role (${{ env.CUSTOMER_ACCT }} role/github-oidc)
-      uses: aws-actions/configure-aws-credentials@v4.1.0
+      uses: aws-actions/configure-aws-credentials@v5.1.1
       with:
         role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
         role-session-name: actionsrolesession
@@ -843,7 +843,7 @@ jobs:
         echo 'configure_sap status - ${{ needs.configure_sap.outputs.job-status }}'
 
     - name: AWS Assume Role (${{ env.CUSTOMER_ACCT }} role/github-oidc)
-      uses: aws-actions/configure-aws-credentials@v4.1.0
+      uses: aws-actions/configure-aws-credentials@v5.1.1
       with:
         role-to-assume: "arn:aws:iam::${{ env.CUSTOMER_ACCT }}:role/github-oidc"
         role-session-name: actionsrolesession
@@ -903,7 +903,7 @@ jobs:
   #     uses: actions/checkout@v4.2.2
 
   #   - name: AWS Assume Role (${{ env.AUTOMATION_ACCT }} role/github-oidc)
-  #     uses: aws-actions/configure-aws-credentials@v4.1.0
+  #     uses: aws-actions/configure-aws-credentials@v5.1.1
   #     with:
   #       role-to-assume: "arn:aws:iam::${{ env.AUTOMATION_ACCT }}:role/github-oidc"
   #       role-session-name: actionsrolesession
