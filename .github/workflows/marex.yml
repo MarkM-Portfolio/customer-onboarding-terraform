@@ -55,7 +55,7 @@ jobs:
 
     steps:
     - name: Checkout PR Branch
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v6.0.2
 
     - name: Test with Checkov
       id: checkov
@@ -87,7 +87,7 @@ jobs:
         TF_ROOT: .
 
     # - name: Checkout Customer Workloads
-    #   uses: actions/checkout@v4.2.2
+    #   uses: actions/checkout@v6.0.2
     #   with:
     #     repository: ${{ env.REPO_ORG }}/customer-workloads
     #     path: ${{ env.REPO_ORG }}/customer-workloads
@@ -103,7 +103,7 @@ jobs:
     #     --out-file=/tmp/infracost-cw.json
 
     # - name: Checkout PR branch
-    #   uses: actions/checkout@v4.2.2
+    #   uses: actions/checkout@v6.0.2
 
     # - name: Generate Infracost diff
     #   env:
@@ -126,7 +126,7 @@ jobs:
 
     # ---------
     # - name: Checkout base branch
-    #   uses: actions/checkout@v4.2.2
+    #   uses: actions/checkout@v6.0.2
     #   with:
     #     ref: '${{ github.event.pull_request.base.ref }}'
 
@@ -151,7 +151,7 @@ jobs:
     #     echo "]" >> $combined_file
 
     - name: Checkout PR branch
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v6.0.2
 
     - name: Generate Infracost cost estimate
       env:
@@ -185,7 +185,7 @@ jobs:
       run: ssh-keyscan github.com >> ~/.ssh/known_hosts
 
     - name: Checkout
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v6.0.2
 
     - name: Set up Python 3.12
       uses: actions/setup-python@v5
@@ -333,7 +333,7 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Checkout Merge Commit
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
@@ -408,7 +408,7 @@ jobs:
   #       ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
   #   - name: Checkout Merge Commit
-  #     uses: actions/checkout@v4.2.2
+  #     uses: actions/checkout@v6.0.2
   #     with:
   #       fetch-depth: 0
   #       ref: ${{ github.event.pull_request.head.sha }}
@@ -614,7 +614,7 @@ jobs:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Checkout Merge Commit
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v6.0.2
       with:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
@@ -794,7 +794,7 @@ jobs:
   #       ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
   #   - name: Checkout
-  #     uses: actions/checkout@v4.2.2
+  #     uses: actions/checkout@v6.0.2
 
   #   - name: Show previous jobs status
   #     continue-on-error: true
@@ -861,7 +861,7 @@ jobs:
   #       pip install boto3 botocore argparse
 
   #   - name: Checkout
-  #     uses: actions/checkout@v4.2.2
+  #     uses: actions/checkout@v6.0.2
 
   #   - name: Configure AWS Credentials
   #     uses: aws-actions/configure-aws-credentials@v4.1.0
